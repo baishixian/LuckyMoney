@@ -54,7 +54,7 @@
         </activity>
 
         <service
-                android:name="com.sunteng.wechatluckmoney.LuckyService"
+                android:name="com.sunteng.wechatluckmoney.core.LuckyService"
                 android:enabled="true"
                 android:exported="true"
                 android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">

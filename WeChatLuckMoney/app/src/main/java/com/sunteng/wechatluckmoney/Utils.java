@@ -1,11 +1,13 @@
 package com.sunteng.wechatluckmoney;
 
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.os.PowerManager;
 import android.util.Log;
 
 import java.io.File;
@@ -110,5 +112,28 @@ public class Utils {
 
     public static String getUpdateDirPath(Context context) {
         return context.getExternalFilesDir("Downloads").getAbsolutePath() + File.separator;
+    }
+
+    /**
+     * 判断屏幕是否点亮
+     * @param context
+     */
+    public static boolean isScreenOn(Context context){
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        boolean isScreenOn = pm.isScreenOn();//如果为true，则表示屏幕“亮”了，否则屏幕“暗”了。
+        Utils.printInfo("isScreenOn " +isScreenOn);
+        return isScreenOn;
+    }
+
+    /**
+     * 判断屏幕是否上锁
+     * @param context
+     * @return
+     */
+    public static boolean isScreenLock(Context context){
+        KeyguardManager mKeyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+        boolean flag = mKeyguardManager.inKeyguardRestrictedInputMode();
+        Utils.printInfo("isScreenLock " +flag);
+        return flag;
     }
 }

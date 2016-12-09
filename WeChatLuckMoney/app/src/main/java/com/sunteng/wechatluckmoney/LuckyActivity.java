@@ -21,6 +21,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sunteng.wechatluckmoney.core.LuckyService;
+
 import java.util.List;
 
 public class LuckyActivity extends AppCompatActivity implements AccessibilityManager.AccessibilityStateChangeListener {
@@ -230,7 +232,7 @@ public class LuckyActivity extends AppCompatActivity implements AccessibilityMan
     protected void onDestroy() {
         //移除监听服务
         Utils.printInfo("onDestroy 移除监听服务");
-       // accessibilityManager.removeAccessibilityStateChangeListener(this);
+        accessibilityManager.removeAccessibilityStateChangeListener(this);
         super.onDestroy();
     }
 
