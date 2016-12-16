@@ -1,7 +1,5 @@
 package com.sunteng.wechatluckmoney.core;
 
-import android.view.accessibility.AccessibilityEvent;
-
 import com.sunteng.wechatluckmoney.Utils;
 
 /**

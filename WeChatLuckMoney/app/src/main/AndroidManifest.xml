@@ -1,29 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.sunteng.wechatluckmoney">
-    <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="android.permission.READ_LOGS"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    package="com.sunteng.wechatluckmoney">
+
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
-    <application
-            android:allowBackup="true"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name"
-            android:supportsRtl="true"
-            android:theme="@style/AppTheme">
-        <activity android:name=".LuckyActivity" android:launchMode="singleTask">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+    <!-- 显示系统窗口权限 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <!-- 在 屏幕最顶部显示addview-->
+    <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".LuckyActivity"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
@@ -33,37 +41,49 @@
        provider_paths为创建在xml文件夹内的资源文件
         -->
         <provider
-                android:name="android.support.v4.content.FileProvider"
-                android:authorities="com.sunteng.wechatluckmoney.fileProvider"
-                android:exported="false"
-                android:grantUriPermissions="true">
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.sunteng.wechatluckmoney.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
             <meta-data
-                    android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/provider_paths"/>
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
         </provider>
 
-        <activity android:name=".SettingsActivity"
-                  android:label="@string/title_activity_display_message"
-                  android:launchMode="standard"
-                  android:parentActivityName="com.sunteng.wechatluckmoney.LuckyActivity" >
-            <!-- Parent activity meta-data to support 4.0 and lower -->>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_display_message"
+            android:launchMode="standard"
+            android:parentActivityName=".LuckyActivity">
 
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            >
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.sunteng.wechatluckmoney.LuckyActivity" />
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.sunteng.wechatluckmoney.LuckyActivity" />
         </activity>
 
         <service
-                android:name="com.sunteng.wechatluckmoney.core.LuckyService"
-                android:enabled="true"
-                android:exported="true"
-                android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            android:name=".core.LuckyService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService"/>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
-            <meta-data android:name="android.accessibilityservice"
-                       android:resource="@xml/accessible_service_config"/>
+
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessible_service_config" />
         </service>
+
+        <service android:name=".FloadingWindow.FloatWindowService"></service>
+
+        <activity
+            android:name=".TransparentActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_transparent"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"></activity>
     </application>
 
 </manifest>

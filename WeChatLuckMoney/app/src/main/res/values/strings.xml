@@ -1,10 +1,14 @@
 <resources>
-    <string name="app_name">WeChatLuckMoney</string>
+    <string name="app_name">微信红包助手</string>
     <string name="service_off">停止自动抢</string>
     <string name="service_on">开启自动抢</string>
-    <string name="app_description">∠( ᐛ 」∠)_使用指南∠( ᐛ 」∠)_\n\n ○ 狠戳插件开关\n ○ 回到微信聊天\n ○ 坐等红包进账\n\n 遇到问题, 欢迎通过 GitHub Issue 反馈~\n</string>
+    <string name="app_description">微信红包助手使用指南 \n\n 遇到问题, 欢迎通过 GitHub 反馈~\n</string>
     <string name="pref_comment_words_summary">随机选择下列感谢语(空格间隔)</string>
     <string name="pref_watch_exclude_words_summary">不拆开包含这些文字的红包(空格间隔)</string>
     <string name="preference">偏好设置</string>
     <string name="title_activity_display_message">偏好设置</string>
+
+    <string name="title_activity_transparent">TransparentActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

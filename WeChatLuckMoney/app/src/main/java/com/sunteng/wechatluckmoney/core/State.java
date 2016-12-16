@@ -15,20 +15,14 @@ public interface State {
     // 正在聊天的窗口
     String CHATTING_WINDOW = "chattingWindow";
 
-    // 通知栏消息事件
-    byte COMMAND_NOTIFICATION_EVENT = 1;
-
-    // 窗体内容或状态改变事件
-    byte COMMAND_WINDOWS_CONTENT_CHANGE_EVENT = 2;
-
     // 查找屏幕上通知栏的红包（查找）
-    byte COMMAND_FINDING_NOTIFICATION_HONGBAO = 3;
+    byte COMMAND_FINDING_NOTIFICATION_HONGBAO = 1;
 
-    // 查找屏幕上聊天列表的红包（查找）
-    byte COMMAND_FINDING_CHAT_LIST_HONGBAO = 31;
+    // 查找屏幕上聊天列表的红包（查找） 微信不支持
+    byte COMMAND_FINDING_CHAT_LIST_HONGBAO = 2;
 
     // 查找屏幕上聊天界面的红包（查找）
-    byte COMMAND_FINDING_CHATTING_WINDOW_HONGBAO = 32;
+    byte COMMAND_FINDING_CHATTING_WINDOW_HONGBAO = 3;
 
     // 查找到红包（匹配成功）
     byte COMMAND_FINDED_HONGBAO = 4;
@@ -53,6 +47,8 @@ public interface State {
 
     // 开启抢红包服务事件
     byte COMMAND_START_SERVICE = 11;
+
+    byte COMMAND_FIRE_HONGBAO_DONE = 12;
 
 
     void executeCommand(byte comment, Object object);

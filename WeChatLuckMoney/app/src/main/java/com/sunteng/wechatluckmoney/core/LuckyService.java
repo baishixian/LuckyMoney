@@ -26,7 +26,10 @@ import com.sunteng.wechatluckmoney.R;
 import com.sunteng.wechatluckmoney.UI;
 import com.sunteng.wechatluckmoney.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.app.Notification.VISIBILITY_PRIVATE;
 
@@ -66,11 +69,77 @@ public class LuckyService extends AccessibilityService implements SharedPreferen
     private int counts = 0;
     private NotificationManager notificationManager;
 
+    /**
+     * AccessibilityEvent
+     *
+     * @param event 事件
+     */
+    @Override
+    public void onAccessibilityEvent(AccessibilityEvent event) {
+
+        if(isSuspend) {
+            return;
+        }
+        if (sharedPreferences == null) return;
+
+        String className = event.getClassName().toString();
+        Utils.printInfo("mSatte " + mStateController.mCurState.toString() +"  CurrentActivityName " +  className);
+
+        if (mStateController.mCurState == mStateController.mFetchingState){
+            return;
+        }
+
+        if (mStateController.mCurState ==  mStateController.mOpeningState){
+            if (className.equals("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyReceiveUI")){ //第二次进入，直接打开，绝逼是真的
+                mStateController.changeState(mStateController.mOpeningState);
+                mStateController.executeComment(State.COMMAND_FIRE_HONGBAO, event.getSource());
+            }
+            return;
+        }
+
+        int eventType = event.getEventType();
+        switch (eventType) {
+            case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED:
+                /* 检测到通知栏消息 */
+                if (sharedPreferences.getBoolean("pref_watch_notification", false)){
+                    if (watchNotificationsHongBao(event)){ // 检查通知栏是否是红包消息“[微信红包]”
+                        mStateController.executeComment(State.COMMAND_FINDING_NOTIFICATION_HONGBAO, event);
+                    }
+                }
+                break;
+            /* 检测窗体内容或状态是否有改变 */
+            case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
+            case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
+                // 微信消息列表界面不支持文字内容查找，所以直接不用考虑查找消息列表的红包消息“[微信红包]”
+                if (className.equals("com.tencent.mm.ui.LauncherUI")) { // 微信聊天消息列表和聊天对话界面共用（滑动消息列表不会多次触发，进入与某人的对话页面不会再次触发）
+                    mStateController.changeState(mStateController.mIdleState);
+                    mStateController.executeComment(State.COMMAND_FINDING_CHATTING_WINDOW_HONGBAO, event);
+                } else if (className.equals("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyReceiveUI")) { // 拆红包界面(不一定是，还有loading动画)
+                    mStateController.changeState(mStateController.mOpeningState);
+                    handlerRealyLuckyMoneyReceiveUI(event);
+                } else if (className.equals("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyDetailUI")) { // 红包详情页界面
+                    mStateController.changeState(mStateController.mOpenedState);
+                    mStateController.executeComment(State.COMMAND_BACK_FINISH, event);
+                }else if("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyPrepareUI".equals(className)) { // 若是点击发红包页面则清空
+                    mStateController.changeState(mStateController.mIdleState);
+                    mStateController.clear();
+                }else if ("android.widget.FrameLayout".equals(className) || "android.widget.EditText".equals(className) || "android.widget.LinearLayout".equals(className)) { // 大概率进入聊天界面
+                    mStateController.changeState(mStateController.mIdleState);
+                    mStateController.executeComment(State.COMMAND_FINDING_CHATTING_WINDOW_HONGBAO, event);
+                }
+                break;
+        }
+    }
+
+    private void handlerRealyLuckyMoneyReceiveUI(AccessibilityEvent event) {
+        mStateController.handlerRealyLuckyMoneyReceiveUI(event);
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mStateController = new StateController(this);
+        mStateController = StateController.getInstance();
+        mStateController.setAccessibilityService(this);
         updateNotification();
         Toast.makeText(this, "已启动抢红包功能", Toast.LENGTH_SHORT).show();
     }
@@ -134,48 +203,6 @@ public class LuckyService extends AccessibilityService implements SharedPreferen
         notificationManager.notify(101, notification);
     }
 
-    /**
-     * AccessibilityEvent
-     *
-     * @param event 事件
-     */
-    @Override
-    public void onAccessibilityEvent(AccessibilityEvent event) {
-
-        if(isSuspend) {
-            return;
-        }
-
-        if (sharedPreferences == null) return;
-
-        int eventType = event.getEventType();
-        switch (eventType) {
-            case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED:
-                /* 检测通知消息 */
-                if (sharedPreferences.getBoolean("pref_watch_notification", false)){
-                    watchNotifications(event);
-                }
-                break;
-            case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
-            case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
-                String className = event.getClassName().toString();
-                Utils.printInfo("CurrentActivityName " +  className);
-                if (className.equals("com.tencent.mm.ui.LauncherUI")) {
-                    mStateController.executeComment(State.COMMAND_FINDING_CHATTING_WINDOW_HONGBAO, event);
-                } else if (className.equals("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyReceiveUI")) {
-                    mStateController.changeState(mStateController.mOpeningState);
-                    mStateController.executeComment(State.COMMAND_FIRE_HONGBAO, event);
-                } else if (className.equals("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyDetailUI")) {
-                    mStateController.changeState(mStateController.mOpenedState);
-                    mStateController.executeComment(State.COMMAND_BACK_FINISH, event);
-                }else if("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyPrepareUI".equals(className)) { //若是点击发红包页面则清空
-                    mStateController.changeState(mStateController.mIdleState);
-                    mStateController.clear();
-                }
-                break;
-        }
-    }
-
     private boolean watchList(AccessibilityEvent event) {
         if (mListMutex) return false;
         mListMutex = true;
@@ -200,24 +227,23 @@ public class LuckyService extends AccessibilityService implements SharedPreferen
         return false;
     }
 
-    private boolean watchNotifications(AccessibilityEvent event) {
+    private boolean watchNotificationsHongBao(AccessibilityEvent event) {
         // Not a notification
         if (event.getEventType() != AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED)
             return false;
 
         // Not a hongbao
         String tip = event.getText().toString();
-        if (!tip.contains(WECHAT_NOTIFICATION_TIP)) return true;
+        if (!tip.contains(WECHAT_NOTIFICATION_TIP)) return false;
 
         Utils.printInfo(" AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED");
         List<CharSequence> list = event.getText();
         for (CharSequence charSequence : list) { //遍历通知栏并打开通知
             if(charSequence.toString().contains(WECHAT_NOTIFICATION_TIP)){
-                mStateController.executeComment(State.COMMAND_NOTIFICATION_EVENT, event);
-                break;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     @Override

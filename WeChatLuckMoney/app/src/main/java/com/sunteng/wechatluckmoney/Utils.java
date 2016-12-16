@@ -31,7 +31,7 @@ public class Utils {
 
     public static void installApk(Context context, String path) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+        if (Build.VERSION.SDK_INT >= 24){
             Utils.printInfo("path is " + path);
             File file = new File(path);
             if (file == null || context == null){

@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.design.widget.Snackbar;
@@ -21,7 +23,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sunteng.wechatluckmoney.FloadingWindow.FloatWindowManager;
+import com.sunteng.wechatluckmoney.FloadingWindow.FloatWindowService;
 import com.sunteng.wechatluckmoney.core.LuckyService;
+import com.sunteng.wechatluckmoney.core.State;
+import com.sunteng.wechatluckmoney.core.StateController;
 
 import java.util.List;
 
@@ -35,11 +41,16 @@ public class LuckyActivity extends AppCompatActivity implements AccessibilityMan
 
     //辅助功能服务 AccessibilityService 管理
     private AccessibilityManager accessibilityManager;
+    private StateController mStateController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_luckly);
+
+        mStateController = StateController.getInstance();
+        mStateController.setHandler(new Handler(Looper.getMainLooper()));
+
 
         luckyStatusText = (TextView) findViewById(R.id.layout_control_accessibility_text);
         luckyStatusIcon = (ImageView) findViewById(R.id.layout_control_accessibility_icon);
@@ -61,6 +72,7 @@ public class LuckyActivity extends AppCompatActivity implements AccessibilityMan
         findViewById(R.id.layout_control_accessibility).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+               // showControlWindow();
                 openAccessibility();
             }
         });
@@ -108,6 +120,34 @@ public class LuckyActivity extends AppCompatActivity implements AccessibilityMan
 
     }
 
+    private void cancelControlWindow() {
+        // 点击关闭悬浮窗的时候，移除所有悬浮窗，并停止Service
+        FloatWindowManager.removeFloatWindow(LuckyActivity.this);
+        Intent intent = new Intent(LuckyActivity.this, FloatWindowService.class);
+        LuckyActivity.this.stopService(intent);
+    }
+
+    private void showControlWindow() {
+        if(Build.VERSION.SDK_INT >= 23) {
+            if (!Settings.canDrawOverlays(LuckyActivity.this)) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, 1234);
+            }else{
+                openAccessibility();
+                Intent intent = new Intent(LuckyActivity.this, FloatWindowService.class);
+                startService(intent);
+            }
+        }
+        else
+        {
+            openAccessibility();
+            Intent intent = new Intent(LuckyActivity.this, FloatWindowService.class);
+            startService(intent);
+        }
+    }
+
+
     /**
      * 适配沉浸状态栏
      */
@@ -148,7 +188,7 @@ public class LuckyActivity extends AppCompatActivity implements AccessibilityMan
         List<AccessibilityServiceInfo> accessibilityServices =
                 accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC);
         for (AccessibilityServiceInfo info : accessibilityServices) {
-            if (info.getId().equals(getPackageName() + "/.LuckyService")) {
+            if (info.getId().equals(getPackageName() + "/core/.LuckyService")) {
                 return true;
             }
         }
@@ -198,6 +238,7 @@ public class LuckyActivity extends AppCompatActivity implements AccessibilityMan
 
     @Override
     public void onAccessibilityStateChanged(boolean enabled) {
+        Utils.printInfo("onAccessibilityStateChanged enabled " + enabled);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -233,6 +274,7 @@ public class LuckyActivity extends AppCompatActivity implements AccessibilityMan
         //移除监听服务
         Utils.printInfo("onDestroy 移除监听服务");
         accessibilityManager.removeAccessibilityStateChangeListener(this);
+        cancelControlWindow();
         super.onDestroy();
     }
 
@@ -265,5 +307,16 @@ public class LuckyActivity extends AppCompatActivity implements AccessibilityMan
                 systemDownloadTask.doExecute();
             }
         }).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1234){
+            Utils.printInfo("onActivityResult FloatWindowService");
+            Intent intent = new Intent(LuckyActivity.this, FloatWindowService.class);
+            startService(intent);
+            openAccessibility();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
